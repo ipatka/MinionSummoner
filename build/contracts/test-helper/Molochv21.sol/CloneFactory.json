@@ -1,0 +1,10 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "CloneFactory",
+  "sourceName": "contracts/test-helper/Molochv21.sol",
+  "abi": [],
+  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3fe6080604052600080fdfea165627a7a723058208e282dd7df4f95b4bb562ec722d9f7639eb5fe31e97eb22baabbee2e7bd9d7010029",
+  "deployedBytecode": "0x6080604052600080fdfea165627a7a723058208e282dd7df4f95b4bb562ec722d9f7639eb5fe31e97eb22baabbee2e7bd9d7010029",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
