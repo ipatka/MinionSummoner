@@ -156,13 +156,12 @@ contract Minion is IERC721Receiver {
         require(!action.executed, "action executed");
         require(address(this).balance >= action.value, "insufficient eth");
         require(flags[2], "proposal not passed");
+        require(block.timestamp > action.conditionExecTime, "Conditional execution time not met");
         
         if(action.conditionTarget != address(0)) {
             (bool conditionSuccess, bytes memory conditionRetData) = action.to.call{value: 0}(action.conditionData);
             require(conditionSuccess, "Condition call failed");
             // check conditionRetData for something?
-        } else {
-            require(block.timestamp > action.conditionExecTime, "Conditional execution time not met");
         }
 
         // execute call
