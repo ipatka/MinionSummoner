@@ -238,6 +238,7 @@ contract Minion is IERC721Receiver {
         uint256 yesVotes;
         uint256 noVotes;
         uint256 totalShares = moloch.totalShares();
+        bool[6] memory flags = moloch.getProposalFlags(_proposalId);
 
 
         yesVotes = moloch.proposals(_proposalId).yesVotes;
@@ -247,7 +248,7 @@ contract Minion is IERC721Receiver {
             uint256 quorum = yesVotes.mul(padding).div(totalShares);
             return quorum > _quorum && yesVotes > noVotes;  
         }
-        return yesVotes > noVotes;
+        return flags[2];
         
 
     }
