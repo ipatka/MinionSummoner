@@ -69,23 +69,20 @@ contract Minion is IERC721Receiver {
     event PulledFunds(address moloch, uint256 amount);
     event ActionCanceled(uint256 proposalId);
 
-    modifier memberOnly() {
+     modifier memberOnly() {
         require(isMember(msg.sender), "Minion::not member");
         _;
     }
 
     function init(address _moloch) external {
-        require(!initialized, "initialized");
+        require(!initialized, "initialized"); 
         moloch = IMOLOCH(_moloch);
         molochDepositToken = moloch.depositToken();
         initialized = true;
     }
 
     function onERC721Received( address, address, uint256, bytes calldata) external pure override returns (bytes4) {
-        return
-            bytes4(
-                keccak256("onERC721Received(address,address,uint256,bytes)")
-            );
+        return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
     }
 
     //  -- Withdraw Functions --
@@ -95,23 +92,15 @@ contract Minion is IERC721Receiver {
         emit DoWithdraw(token, amount);
     }
 
-    function crossWithdraw(
-        address target,
-        address token,
-        uint256 amount,
-        bool transfer
-    ) external memberOnly {
+    function crossWithdraw(address target, address token, uint256 amount, bool transfer) external memberOnly {
         // @Dev - Target needs to have a withdrawBalance functions
-        IMOLOCH(target).withdrawBalance(token, amount);
+        IMOLOCH(target).withdrawBalance(token, amount); 
 
         // Transfers token into DAO.
         if (transfer) {
             bool whitelisted = moloch.tokenWhitelist(token);
             require(whitelisted, "not a whitelisted token");
-            require(
-                IERC20(token).transfer(address(moloch), amount),
-                "token transfer failed"
-            );
+            require(IERC20(token).transfer(address(moloch), amount), "token transfer failed");
         }
 
         emit CrossWithdraw(target, token, amount);
@@ -161,17 +150,16 @@ contract Minion is IERC721Receiver {
         // the proposal without getting the proposal struct from parent moloch
         require(actionTo != address(0), "invalid actionTo");
 
-        uint256 proposalId =
-            moloch.submitProposal(
-                address(this),
-                0,
-                0,
-                0,
-                molochDepositToken,
-                paymentRequested,
-                molochDepositToken,
-                details
-            );
+        uint256 proposalId = moloch.submitProposal(
+            address(this),
+            0,
+            0,
+            0,
+            molochDepositToken,
+            paymentRequested,
+            molochDepositToken,
+            details
+        );
 
         saveAction(
             actionTo,
