@@ -68,7 +68,7 @@ contract Minion is IERC721Receiver {
     event CrossWithdraw(address target, address token, uint256 amount);
     event PulledFunds(address moloch, uint256 amount);
     event ActionCanceled(uint256 proposalId);
-
+    
      modifier memberOnly() {
         require(isMember(msg.sender), "Minion::not member");
         _;
@@ -78,9 +78,9 @@ contract Minion is IERC721Receiver {
         require(!initialized, "initialized"); 
         moloch = IMOLOCH(_moloch);
         molochDepositToken = moloch.depositToken();
-        initialized = true;
-    }
-
+        initialized = true; 
+    } 
+    
     function onERC721Received( address, address, uint256, bytes calldata) external pure override returns (bytes4) {
         return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
     }
@@ -91,21 +91,21 @@ contract Minion is IERC721Receiver {
         moloch.withdrawBalance(token, amount); // withdraw funds from parent moloch
         emit DoWithdraw(token, amount);
     }
-
+    
     function crossWithdraw(address target, address token, uint256 amount, bool transfer) external memberOnly {
         // @Dev - Target needs to have a withdrawBalance functions
         IMOLOCH(target).withdrawBalance(token, amount); 
-
-        // Transfers token into DAO.
+        
+        // Transfers token into DAO. 
         if(transfer) {
             bool whitelisted = moloch.tokenWhitelist(token);
             require(whitelisted, "not a whitelisted token");
             require(IERC20(token).transfer(address(moloch), amount), "token transfer failed");
         }
-
+        
         emit CrossWithdraw(target, token, amount);
     }
-
+    
     //  -- Proposal Functions --
 
     // helper to fix stack too deep error
@@ -208,7 +208,7 @@ contract Minion is IERC721Receiver {
         emit ExecuteAction(proposalId, msg.sender);
         return retData;
     }
-
+    
     function cancelAction(uint256 _proposalId) external {
         Action memory action = actions[_proposalId];
         require(msg.sender == action.proposer, "not proposer");
@@ -216,9 +216,9 @@ contract Minion is IERC721Receiver {
         emit ActionCanceled(_proposalId);
         moloch.cancelProposal(_proposalId);
     }
-
+    
     //  -- Helper Functions --
-
+    
     function isMember(address user) public view returns (bool) {
         (, uint shares,,,,) = moloch.members(user);
         return shares > 0;
@@ -264,28 +264,28 @@ contract MinionFactory is CloneFactory {
     address payable immutable public template; // fixed template for minion using eip-1167 proxy pattern
     address[] public minionList;
     mapping (address => AMinion) public minions;
-
+    
     event SummonMinion(address indexed minion, address indexed moloch, string details, string minionType);
-
+    
     struct AMinion {
         address moloch;
-        string details;
+        string details; 
     }
 
     constructor(address payable _template) {
         template = _template;
     }
-
+    
     function summonMinion(address moloch, string memory details) external returns (address) {
         Minion minion = Minion(createClone(template));
-
+        
         minion.init(moloch);
         string memory minionType = "vanilla minion";
-
+        
         minions[address(minion)] = AMinion(moloch, details);
         minionList.push(address(minion));
         emit SummonMinion(address(minion), moloch, details, minionType);
-
+        
         return(address(minion));
     }
 }
