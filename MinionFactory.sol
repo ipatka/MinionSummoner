@@ -3,11 +3,11 @@ pragma solidity 0.7.5;
 
 interface IERC20 { // brief interface for moloch erc20 token txs
     function balanceOf(address who) external view returns (uint256);
-
+    
     function transfer(address to, uint256 value) external returns (bool);
 
     function transferFrom(address from, address to, uint256 value) external returns (bool);
-
+    
     function approve(address spender, uint256 amount) external returns (bool);
 }
 
@@ -19,15 +19,15 @@ interface IMOLOCH { // brief interface for moloch dao v2
 
 
     function depositToken() external view returns (address);
-
+    
     function tokenWhitelist(address token) external view returns (bool);
-
+    
     function getProposalFlags(uint256 proposalId) external view returns (bool[6] memory);
-
+    
     function members(address user) external view returns (address, uint256, uint256, bool, uint256, uint256);
-
+    
     function userTokenBalances(address user, address token) external view returns (uint256);
-
+    
     function cancelProposal(uint256 proposalId) external;
 
     function submitProposal(
@@ -40,7 +40,7 @@ interface IMOLOCH { // brief interface for moloch dao v2
         address paymentToken,
         string calldata details
     ) external returns (uint256);
-
+    
     function withdrawBalance(address token, uint256 amount) external;
 }
 
@@ -97,7 +97,7 @@ contract Minion is IERC721Receiver {
         IMOLOCH(target).withdrawBalance(token, amount); 
 
         // Transfers token into DAO.
-        if (transfer) {
+        if(transfer) {
             bool whitelisted = moloch.tokenWhitelist(token);
             require(whitelisted, "not a whitelisted token");
             require(IERC20(token).transfer(address(moloch), amount), "token transfer failed");
