@@ -81,7 +81,7 @@ contract Minion is IERC721Receiver {
         initialized = true; 
     } 
     
-    function onERC721Received( address, address, uint256, bytes calldata) external pure override returns (bytes4) {
+    function onERC721Received (address, address, uint256, bytes calldata) external pure override returns(bytes4) {
         return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
     }
 
@@ -220,6 +220,7 @@ contract Minion is IERC721Receiver {
     //  -- Helper Functions --
     
     function isMember(address user) public view returns (bool) {
+
         (, uint shares,,,,) = moloch.members(user);
         return shares > 0;
     }
@@ -262,7 +263,7 @@ contract CloneFactory {
 
 contract MinionFactory is CloneFactory {
     address payable immutable public template; // fixed template for minion using eip-1167 proxy pattern
-    address[] public minionList;
+    address[] public minionList; 
     mapping (address => AMinion) public minions;
     
     event SummonMinion(address indexed minion, address indexed moloch, string details, string minionType);
