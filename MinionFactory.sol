@@ -1,5 +1,16 @@
+/**
+ *Submitted for verification at Etherscan.io on 2021-06-04
+*/
+
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.7.5;
+
+interface IERC1271 {
+    function isValidSignature(bytes32 _messageHash, bytes memory _signature)
+        external
+        view
+        returns (bytes4 magicValue);
+}
 
 interface IERC20 { // brief interface for moloch erc20 token txs
     function balanceOf(address who) external view returns (uint256);
@@ -44,11 +55,19 @@ interface IMOLOCH { // brief interface for moloch dao v2
     function withdrawBalance(address token, uint256 amount) external;
 }
 
-contract Minion is IERC721Receiver {
+contract Minion is IERC721Receiver, IERC1271{
     IMOLOCH public moloch;
     address public molochDepositToken;
     bool private initialized; // internally tracks deployment under eip-1167 proxy pattern
     mapping(uint256 => Action) public actions; // proposalId => Action
+
+    struct DAOSignature {
+        bytes32 signatureHash;
+        bytes4 magicValue;
+        uint256 proposalId;
+    }
+
+    mapping (bytes32 => DAOSignature) public signatures;
 
     struct Action {
         uint256 value;
@@ -59,6 +78,7 @@ contract Minion is IERC721Receiver {
     }
 
     event ProposeAction(uint256 proposalId, address proposer);
+    event ProposeSignature(uint256 proposalId, address proposer);
     event ExecuteAction(uint256 proposalId, address executor);
     event DoWithdraw(address token, uint256 amount);
     event CrossWithdraw(address target, address token, uint256 amount);
@@ -139,6 +159,30 @@ contract Minion is IERC721Receiver {
         return proposalId;
     }
 
+    function proposeSignature(
+        bytes32 permissionHash,
+        bytes32 signatureHash,
+        bytes4 magicValue,
+        string calldata details
+    ) external memberOnly returns (uint256) {
+
+        uint256 proposalId = moloch.submitProposal(
+            address(this),
+            0,
+            0,
+            0,
+            molochDepositToken,
+            0,
+            molochDepositToken,
+            details
+        );
+
+        signatures[permissionHash] = DAOSignature(signatureHash, magicValue, proposalId);
+
+        emit ProposeSignature(proposalId, msg.sender);
+        return proposalId;
+    }
+
     function executeAction(uint256 proposalId) external returns (bytes memory) {
         Action memory action = actions[proposalId];
         bool[6] memory flags = moloch.getProposalFlags(proposalId);
@@ -162,6 +206,18 @@ contract Minion is IERC721Receiver {
         delete actions[_proposalId];
         emit ActionCanceled(_proposalId);
         moloch.cancelProposal(_proposalId);
+    }
+
+    function isValidSignature(bytes32 permissionHash, bytes memory signature)
+        public
+        view
+        override
+        returns (bytes4)
+    {
+        bool[6] memory flags = moloch.getProposalFlags(signatures[permissionHash].proposalId);
+        require(flags[2], 'proposal not passed');
+        require(signatures[permissionHash].signatureHash == keccak256(abi.encodePacked(signature)), 'invalid signature hash');
+        return signatures[permissionHash].magicValue;
     }
     
     //  -- Helper Functions --
